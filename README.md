@@ -1,2 +1,2 @@
 # GWClubHub
-- Vibe-coded waste reducing initiative for GW Clubs
+- Potential reducing initiative for clubs at GW / any university

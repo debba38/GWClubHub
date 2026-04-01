@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, 'Georgia', sans-serif); background: var(--color-background-tertiary); color: var(--color-text-primary); min-height: 100vh; }
+
+  /* NAV */
+  .topbar { background: #1A3A2A; padding: 0 1.5rem; display: flex; align-items: center; gap: 1.5rem; height: 52px; position: sticky; top: 0; z-index: 100; }
+  .topbar-logo { font-size: 15px; font-weight: 500; color: #A8E6C4; letter-spacing: 0.04em; white-space: nowrap; }
+  .topbar-logo span { color: #fff; }
+  .topbar-club { font-size: 12px; color: #6BBF94; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+  .nav-tabs { display: flex; gap: 4px; margin-left: auto; }
+  .nav-tab { font-size: 12px; color: #9FC8B2; background: transparent; border: none; cursor: pointer; padding: 6px 12px; border-radius: 6px; transition: all 0.15s; white-space: nowrap; }
+  .nav-tab:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-tab.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 500; }
+
+  /* LAYOUT */
+  .page { display: none; padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
+  .page.active { display: block; }
+  h2 { font-size: 20px; font-weight: 500; margin-bottom: 1.25rem; color: var(--color-text-primary); }
+  h3 { font-size: 15px; font-weight: 500; margin-bottom: 0.75rem; }
+
+  /* CARDS */
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .card-row { display: grid; gap: 1rem; }
+  .card-row.col2 { grid-template-columns: repeat(2, 1fr); }
+  .card-row.col3 { grid-template-columns: repeat(3, 1fr); }
+  .card-row.col4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  /* STAT CARDS */
+  .stat-card { background: var(--color-background-secondary); border-radius: 8px; padding: 1rem; }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .stat-val { font-size: 26px; font-weight: 500; color: var(--color-text-primary); }
+  .stat-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+
+  /* BADGES */
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .badge-green { background: #EAF3DE; color: #3B6D11; }
+  .badge-amber { background: #FAEEDA; color: #854F0B; }
+  .badge-red { background: #FCEBEB; color: #A32D2D; }
+  .badge-blue { background: #E6F1FB; color: #185FA5; }
+  .badge-gray { background: #F1EFE8; color: #5F5E5A; }
+  .badge-teal { background: #E1F5EE; color: #0F6E56; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 10px; color: var(--color-text-secondary); font-weight: 500; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  td { padding: 10px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--color-background-secondary); }
+
+  /* INVENTORY ITEMS */
+  .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1rem; }
+  .item-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: 10px; padding: 1rem; cursor: pointer; transition: border-color 0.15s; }
+  .item-card:hover { border-color: var(--color-border-secondary); }
+  .item-img { width: 100%; height: 90px; background: var(--color-background-secondary); border-radius: 6px; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  .item-name { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .item-meta { font-size: 11px; color: var(--color-text-secondary); }
+  .item-qty { font-size: 13px; font-weight: 500; color: #1D9E75; }
+
+  /* BUTTONS */
+  .btn { font-size: 13px; padding: 7px 14px; border-radius: 7px; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); cursor: pointer; transition: all 0.15s; }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn-primary { background: #1A3A2A; color: #A8E6C4; border-color: transparent; }
+  .btn-primary:hover { background: #243F30; }
+  .btn-sm { font-size: 11px; padding: 4px 10px; }
+  .btn-danger { border-color: #F0957A; color: #A32D2D; }
+  .btn-danger:hover { background: #FCEBEB; }
+
+  /* FORMS */
+  input, select, textarea { font-size: 13px; font-family: inherit; width: 100%; padding: 8px 10px; border: 0.5px solid var(--color-border-tertiary); border-radius: 7px; background: var(--color-background-primary); color: var(--color-text-primary); outline: none; transition: border-color 0.15s; }
+  input:focus, select:focus, textarea:focus { border-color: #1D9E75; }
+  .form-row { display: grid; gap: 1rem; margin-bottom: 1rem; }
+  .form-row.col2 { grid-template-columns: 1fr 1fr; }
+  label { font-size: 12px; color: var(--color-text-secondary); display: block; margin-bottom: 4px; }
+
+  /* LEADERBOARD */
+  .rank-num { font-size: 18px; font-weight: 500; color: var(--color-text-tertiary); width: 30px; }
+  .rank-num.gold { color: #BA7517; }
+  .rank-num.silver { color: #888780; }
+  .rank-num.bronze { color: #993C1D; }
+  .club-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+  .progress-bar { height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #1D9E75; border-radius: 3px; }
+
+  /* STARS */
+  .stars { color: #BA7517; font-size: 13px; letter-spacing: 1px; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: #F5F3EE; z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--color-background-primary); border-radius: 14px; padding: 1.5rem; width: 90%; max-width: 480px; border: 0.5px solid var(--color-border-tertiary); }
+  .modal-title { font-size: 16px; font-weight: 500; margin-bottom: 1.25rem; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; justify-content: flex-end; }
+
+  /* FILTERS */
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+  .filter-chip { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--color-border-tertiary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+  .filter-chip.active { background: #1A3A2A; color: #A8E6C4; border-color: transparent; }
+  .search-input { flex: 1; min-width: 160px; max-width: 260px; }
+
+  /* TIMELINE */
+  .timeline-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; flex-shrink: 0; margin-top: 5px; }
+  .timeline-text { font-size: 13px; }
+  .timeline-time { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+
+  /* ANALYTICS */
+  .chart-bar-wrap { display: flex; gap: 6px; align-items: flex-end; height: 100px; margin: 1rem 0; }
+  .chart-bar { flex: 1; background: #9FE1CB; border-radius: 4px 4px 0 0; min-width: 20px; transition: background 0.2s; cursor: pointer; }
+  .chart-bar:hover { background: #1D9E75; }
+  .chart-labels { display: flex; gap: 6px; }
+  .chart-label { flex: 1; text-align: center; font-size: 10px; color: var(--color-text-tertiary); min-width: 20px; }
+
+  /* NOTIFICATION DOT */
+  .notif-dot { display: inline-block; width: 7px; height: 7px; background: #D85A30; border-radius: 50%; margin-left: 4px; vertical-align: middle; }
+
+  /* SECTION DIVIDERS */
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; color: var(--color-text-tertiary); text-transform: uppercase; margin-bottom: 0.75rem; margin-top: 1.5rem; }
+
+  /* CLUB SELECTOR */
+  .club-switch { font-size: 12px; color: #6BBF94; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 20px; border: none; cursor: pointer; color: #A8E6C4; }
+  .club-switch:hover { background: rgba(255,255,255,0.15); }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--color-text-tertiary); font-size: 14px; }
+
+  /* TOAST NOTIFICATIONS */
+  #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+  .toast { display: flex; align-items: flex-start; gap: 10px; background: #1A3A2A; color: #fff; border-radius: 10px; padding: 12px 16px; min-width: 260px; max-width: 360px; box-shadow: 0 4px 20px rgba(0,0,0,0.22); pointer-events: all; animation: toastIn 0.28s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .toast.removing { animation: toastOut 0.22s ease-in forwards; }
+  .toast-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .toast-body { flex: 1; }
+  .toast-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .toast-msg { font-size: 12px; color: #A8E6C4; line-height: 1.4; }
+  .toast-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 16px; padding: 0; line-height: 1; flex-shrink: 0; }
+  .toast-close:hover { color: #fff; }
+  .toast.toast-error { background: #3D1010; }
+  .toast.toast-error .toast-msg { color: #F4A0A0; }
+  .toast.toast-info { background: #0F2E4A; }
+  .toast.toast-info .toast-msg { color: #A0CCF4; }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(60px) scale(0.92); } to { opacity: 1; transform: translateX(0) scale(1); } }
+  @keyframes toastOut { from { opacity: 1; transform: translateX(0); max-height: 120px; margin-bottom: 0; } to { opacity: 0; transform: translateX(60px); max-height: 0; padding: 0; margin: 0; } }
+
+  /* MODAL ANIMATION */
+  .modal-overlay { transition: opacity 0.18s ease; opacity: 0; }
+  .modal-overlay.open { opacity: 1; }
+  .modal { background: #fff; border-radius: 14px; padding: 1.5rem; width: 90%; max-width: 500px; border: 1px solid #D9D5CC; box-shadow: 0 8px 40px rgba(0,0,0,0.13); transform: translateY(18px) scale(0.97); transition: transform 0.22s cubic-bezier(0.34,1.4,0.64,1), opacity 0.18s ease; opacity: 0; }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); opacity: 1; }
+
+  /* PHOTO UPLOAD */
+  .photo-upload-zone { border: 1.5px dashed var(--color-border-secondary); border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--color-background-secondary); }
+  .photo-upload-zone:hover { border-color: #1D9E75; background: #F0FAF6; }
+  .photo-upload-zone input[type=file] { display: none; }
+  .photo-preview { width: 100%; height: 90px; object-fit: cover; border-radius: 6px; margin-bottom: 0.75rem; }
+  .photo-thumb { width: 100%; height: 90px; object-fit: cover; border-radius: 6px; }
+
+  /* RETURN SCHEDULING */
+  .return-proposal { background: #F7F5F0; border: 1px solid #E4E0D8; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; }
+  .return-proposal.counter { background: #FFF8F0; border-color: #F0D5A8; }
+  .return-proposal.accepted { background: #F0FAF6; border-color: #A8DFC4; }
+
+  /* CONDITION CHECK */
+  .cond-btn { flex: 1; padding: 8px; border-radius: 7px; border: 1px solid var(--color-border-tertiary); background: transparent; cursor: pointer; font-size: 12px; transition: all 0.15s; text-align: center; }
+  .cond-btn.selected-exc { background: #EAF3DE; border-color: #3B6D11; color: #3B6D11; font-weight: 500; }
+  .cond-btn.selected-good { background: #E6F1FB; border-color: #185FA5; color: #185FA5; font-weight: 500; }
+  .cond-btn.selected-fair { background: #FAEEDA; border-color: #854F0B; color: #854F0B; font-weight: 500; }
+  .cond-btn.selected-poor { background: #FCEBEB; border-color: #A32D2D; color: #A32D2D; font-weight: 500; }
+
+  @media (max-width: 700px) {
+    .card-row.col3 { grid-template-columns: 1fr 1fr; }
+    .card-row.col4 { grid-template-columns: 1fr 1fr; }
+    .item-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .form-row.col2 { grid-template-columns: 1fr; }
+    .nav-tabs { gap: 2px; }
+    .nav-tab { padding: 5px 8px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- TOP NAV -->
+<div class="topbar">
+  <div class="topbar-logo"><span>GW</span> Club Hub</div>
+  <div class="topbar-club" id="current-club-badge">College Democrats</div>
+  <button class="club-switch" onclick="openClubSwitcher()">switch club</button>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('inventory')">Inventory</button>
+    <button class="nav-tab" onclick="showPage('browse')">Browse<span class="notif-dot" id="notif-browse" style="display:none"></span></button>
+    <button class="nav-tab" onclick="showPage('requests')">Requests<span class="notif-dot" id="notif-req"></span></button>
+    <button class="nav-tab" onclick="showPage('leaderboard')">Leaderboard</button>
+    <button class="nav-tab" onclick="showPage('analytics')">Analytics</button>
+  </div>
+</div>
+
+<!-- ===== PAGE: MY INVENTORY ===== -->
+<div class="page active" id="page-inventory">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px;">
+    <h2 style="margin:0">My Inventory</h2>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" onclick="openExport()" style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:15px;">⬇</span> Export
+      </button>
+      <button class="btn btn-primary" onclick="openAddItem()">+ Add Item</button>
+    </div>
+  </div>
+
+  <div class="card-row col4" style="margin-bottom:1rem;">
+    <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-val" id="stat-total">—</div></div>
+    <div class="stat-card"><div class="stat-label">Available</div><div class="stat-val" id="stat-avail">—</div></div>
+    <div class="stat-card"><div class="stat-label">On Loan</div><div class="stat-val" id="stat-loan">—</div></div>
+    <div class="stat-card"><div class="stat-label">Lending Points</div><div class="stat-val" id="stat-pts">—</div><div class="stat-sub">= $<span id="stat-funding">0</span> extra funding</div></div>
+  </div>
+
+  <div class="filter-bar">
+    <input class="search-input" type="text" placeholder="Search items..." id="inv-search" oninput="renderInventory()">
+    <button class="filter-chip active" onclick="setFilter(this,'all')">All</button>
+    <button class="filter-chip" onclick="setFilter(this,'Furniture')">Furniture</button>
+    <button class="filter-chip" onclick="setFilter(this,'A/V')">A/V</button>
+    <button class="filter-chip" onclick="setFilter(this,'Tableware')">Tableware</button>
+    <button class="filter-chip" onclick="setFilter(this,'Decor')">Decor</button>
+    <button class="filter-chip" onclick="setFilter(this,'Other')">Other</button>
+  </div>
+
+  <div class="item-grid" id="inv-grid"></div>
+</div>
+
+<!-- ===== PAGE: BROWSE ===== -->
+<div class="page" id="page-browse">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px;">
+    <h2 style="margin:0">Browse Other Clubs</h2>
+  </div>
+
+  <div class="filter-bar">
+    <input class="search-input" type="text" placeholder="Search items..." id="browse-search" oninput="renderBrowse()">
+    <button class="filter-chip active" onclick="setBrowseFilter(this,'all')">All</button>
+    <button class="filter-chip" onclick="setBrowseFilter(this,'Furniture')">Furniture</button>
+    <button class="filter-chip" onclick="setBrowseFilter(this,'A/V')">A/V</button>
+    <button class="filter-chip" onclick="setBrowseFilter(this,'Tableware')">Tableware</button>
+    <button class="filter-chip" onclick="setBrowseFilter(this,'Decor')">Decor</button>
+    <button class="filter-chip" onclick="setBrowseFilter(this,'Other')">Other</button>
+  </div>
+
+  <div class="item-grid" id="browse-grid"></div>
+</div>
+
+<!-- ===== PAGE: REQUESTS ===== -->
+<div class="page" id="page-requests">
+  <h2>Borrow Requests</h2>
+
+  <div style="display:flex;gap:8px;margin-bottom:1.25rem;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:0;">
+    <button class="filter-chip active" id="req-tab-incoming" onclick="setReqTab('incoming')">Incoming</button>
+    <button class="filter-chip" id="req-tab-outgoing" onclick="setReqTab('outgoing')">Outgoing</button>
+  </div>
+
+  <div id="req-incoming-panel">
+    <div class="card" id="req-list-incoming"></div>
+  </div>
+  <div id="req-outgoing-panel" style="display:none">
+    <div class="card" id="req-list-outgoing"></div>
+  </div>
+</div>
+
+<!-- ===== PAGE: LEADERBOARD ===== -->
+<div class="page" id="page-leaderboard">
+  <h2>Leaderboard</h2>
+
+  <div class="card-row col2" style="margin-bottom:1rem;">
+    <div class="card">
+      <div class="section-label" style="margin-top:0">Overall ranking</div>
+      <div id="lb-overall"></div>
+    </div>
+    <div class="card">
+      <div class="section-label" style="margin-top:0">By category</div>
+      <div class="filter-bar" style="margin-bottom:0.75rem;">
+        <button class="filter-chip active" onclick="setLbCat(this,'Furniture')">Furniture</button>
+        <button class="filter-chip" onclick="setLbCat(this,'A/V')">A/V</button>
+        <button class="filter-chip" onclick="setLbCat(this,'Tableware')">Tableware</button>
+        <button class="filter-chip" onclick="setLbCat(this,'Decor')">Decor</button>
+      </div>
+      <div id="lb-cat"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label" style="margin-top:0">Club ratings</div>
+    <table>
+      <thead><tr><th>Club</th><th>Lender rating</th><th>Borrower rating</th><th>Transactions</th></tr></thead>
+      <tbody id="lb-ratings"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== PAGE: ANALYTICS ===== -->
+<div class="page" id="page-analytics">
+  <h2>Analytics</h2>
+
+  <div class="card-row col3" style="margin-bottom:1rem;">
+    <div class="stat-card"><div class="stat-label">Total transactions</div><div class="stat-val">47</div></div>
+    <div class="stat-card"><div class="stat-label">Most requested item</div><div class="stat-val" style="font-size:16px;margin-top:4px;">Folding Tables</div></div>
+    <div class="stat-card"><div class="stat-label">Avg. response time</div><div class="stat-val">1.8<span style="font-size:14px;font-weight:400;"> days</span></div></div>
+  </div>
+
+  <div class="card-row col2">
+    <div class="card">
+      <h3>Most requested items</h3>
+      <div class="chart-bar-wrap" id="chart-items"></div>
+      <div class="chart-labels" id="chart-items-labels"></div>
+    </div>
+    <div class="card">
+      <h3>Requests by category</h3>
+      <div class="chart-bar-wrap" id="chart-cats"></div>
+      <div class="chart-labels" id="chart-cats-labels"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <h3>Recent activity</h3>
+    <div id="activity-log"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ADD ITEM ===== -->
+<div class="modal-overlay" id="modal-add-item">
+  <div class="modal">
+    <div class="modal-title">Add inventory item</div>
+    <div class="form-row col2">
+      <div><label>Item name</label><input type="text" id="new-item-name" placeholder="e.g. Folding table"></div>
+      <div><label>Category</label>
+        <select id="new-item-cat">
+          <option>Furniture</option><option>A/V</option><option>Tableware</option><option>Decor</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row col2">
+      <div><label>Quantity</label><input type="number" id="new-item-qty" min="1" value="1"></div>
+      <div><label>Condition</label>
+        <select id="new-item-cond">
+          <option>Excellent</option><option>Good</option><option>Fair</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label>Description (optional)</label><textarea id="new-item-desc" rows="2" placeholder="Size, color, special notes..."></textarea></div>
+    </div>
+    <div class="form-row col2">
+      <div><label>Available to lend?</label>
+        <select id="new-item-lend"><option value="yes">Yes</option><option value="no">No (private)</option></select>
+      </div>
+      <div><label>Item photo emoji</label><input type="text" id="new-item-emoji" placeholder="e.g. 🪑" maxlength="4" value="📦"></div>
+    </div>
+    <div class="form-row" style="margin-bottom:0;">
+      <div>
+        <label>Item photo (optional)</label>
+        <div class="photo-upload-zone" onclick="document.getElementById('new-item-photo-input').click()" id="new-item-photo-zone">
+          <input type="file" id="new-item-photo-input" accept="image/*" onchange="previewItemPhoto(this)">
+          <div id="new-item-photo-preview-wrap">
+            <div style="font-size:22px;margin-bottom:4px;">📷</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);">Click to upload a photo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-add-item')">Cancel</button>
+      <button class="btn btn-primary" onclick="addItem()">Add item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: BORROW REQUEST ===== -->
+<div class="modal-overlay" id="modal-borrow">
+  <div class="modal">
+    <div class="modal-title" id="borrow-modal-title">Request to borrow</div>
+    <div class="form-row col2">
+      <div><label>Quantity needed</label><input type="number" id="borrow-qty" min="1" value="1"></div>
+      <div><label>Date needed</label><input type="date" id="borrow-date"></div>
+    </div>
+    <div class="form-row col2">
+      <div><label>Return date</label><input type="date" id="borrow-return"></div>
+      <div><label>Event type</label>
+        <select id="borrow-event">
+          <option>General meeting</option><option>Social event</option><option>Speaker event</option><option>Fundraiser</option><option>Community service</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div><label>Message to lender</label><textarea id="borrow-msg" rows="2" placeholder="Introduce yourself, explain the event..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-borrow')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitBorrow()">Send request</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: RESPOND REQUEST ===== -->
+<div class="modal-overlay" id="modal-respond">
+  <div class="modal">
+    <div class="modal-title">Respond to request</div>
+    <div class="card" style="margin-bottom:1rem;background:#F7F5F0;border:1px solid #E4E0D8;">
+      <div id="respond-detail" style="font-size:13px;"></div>
+    </div>
+
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:12px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#888;margin-bottom:10px;">📍 Pickup details (if approving)</div>
+      <div class="form-row col2" style="margin-bottom:0.75rem;">
+        <div>
+          <label>Pickup date</label>
+          <input type="date" id="respond-pickup-date">
+        </div>
+        <div>
+          <label>Pickup time</label>
+          <input type="time" id="respond-pickup-time" value="12:00">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:0;">
+        <div>
+          <label>Pickup location</label>
+          <input type="text" id="respond-pickup-location" placeholder="e.g. Marvin Center Room 301, front desk...">
+        </div>
+      </div>
+    </div>
+
+    <div><label>Message (optional)</label><textarea id="respond-msg" rows="2" placeholder="Add a note for the borrowing club..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="respondRequest('denied')">Decline</button>
+      <button class="btn btn-primary" onclick="respondRequest('approved')">Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: RATE TRANSACTION ===== -->
+<div class="modal-overlay" id="modal-rate">
+  <div class="modal">
+    <div class="modal-title" id="rate-title">Rate this transaction</div>
+    <div style="margin-bottom:1rem;font-size:13px;color:var(--color-text-secondary);" id="rate-sub"></div>
+    <label style="margin-bottom:8px;display:block;">Rating</label>
+    <div style="display:flex;gap:8px;margin-bottom:1rem;" id="star-picker">
+      <button class="btn" onclick="setStar(1)">1 ★</button>
+      <button class="btn" onclick="setStar(2)">2 ★</button>
+      <button class="btn" onclick="setStar(3)">3 ★</button>
+      <button class="btn" onclick="setStar(4)">4 ★</button>
+      <button class="btn" onclick="setStar(5)">5 ★</button>
+    </div>
+    <div><label>Feedback</label><textarea id="rate-msg" rows="2" placeholder="How was the experience?"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-rate')">Skip</button>
+      <button class="btn btn-primary" onclick="submitRating()">Submit rating</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: EXPORT ===== -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">Export to spreadsheet</div>
+    <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1.25rem;line-height:1.6;">Downloads a <strong>.csv</strong> file you can open directly in Excel or Google Sheets. Choose what to include:</p>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem;">
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:8px;border:1px solid var(--color-border-tertiary);cursor:pointer;transition:border-color 0.15s;" id="export-opt-inv" onclick="selectExportOpt('inventory')">
+        <input type="radio" name="export-opt" value="inventory" checked style="width:auto;margin-top:2px;">
+        <div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:2px;">📦 Inventory only</div>
+          <div style="font-size:11px;color:var(--color-text-secondary);">Item name, category, quantity, available, condition, lendable</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:8px;border:1px solid var(--color-border-tertiary);cursor:pointer;transition:border-color 0.15s;" id="export-opt-req" onclick="selectExportOpt('requests')">
+        <input type="radio" name="export-opt" value="requests" style="width:auto;margin-top:2px;">
+        <div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:2px;">📋 Requests only</div>
+          <div style="font-size:11px;color:var(--color-text-secondary);">From, to, item, qty, date, status, pickup details</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:8px;border:1px solid var(--color-border-tertiary);cursor:pointer;transition:border-color 0.15s;" id="export-opt-both" onclick="selectExportOpt('both')">
+        <input type="radio" name="export-opt" value="both" style="width:auto;margin-top:2px;">
+        <div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:2px;">📊 Both (two sheets)</div>
+          <div style="font-size:11px;color:var(--color-text-secondary);">Downloads two separate CSV files</div>
+        </div>
+      </label>
+    </div>
+
+    <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:1.25rem;">
+      💡 In Google Sheets: File → Import → Upload the CSV. In Excel: just double-click to open.
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-export')">Cancel</button>
+      <button class="btn btn-primary" onclick="doExport()" style="display:flex;align-items:center;gap:6px;">⬇ Download</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: CONDITION CHECK-IN (lender logs condition when handing off) ===== -->
+<div class="modal-overlay" id="modal-checkin">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">📋 Log item condition at handoff</div>
+    <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;">Record the item's condition before it leaves — this protects both clubs.</p>
+    <div style="margin-bottom:1rem;">
+      <label style="margin-bottom:8px;display:block;">Condition at handoff</label>
+      <div style="display:flex;gap:8px;">
+        <button class="cond-btn" onclick="selectCheckinCond('Excellent',this)">✅ Excellent</button>
+        <button class="cond-btn" onclick="selectCheckinCond('Good',this)">👍 Good</button>
+        <button class="cond-btn" onclick="selectCheckinCond('Fair',this)">⚠️ Fair</button>
+        <button class="cond-btn" onclick="selectCheckinCond('Poor',this)">❌ Poor</button>
+      </div>
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label>Photo of item at handoff</label>
+      <div class="photo-upload-zone" onclick="document.getElementById('checkin-photo-input').click()" id="checkin-photo-zone">
+        <input type="file" id="checkin-photo-input" accept="image/*" onchange="previewZonePhoto(this,'checkin-photo-zone','checkin-photo-preview')">
+        <div id="checkin-photo-preview">
+          <div style="font-size:22px;margin-bottom:4px;">📷</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);">Click to upload</div>
+        </div>
+      </div>
+    </div>
+    <div><label>Notes (optional)</label><textarea id="checkin-notes" rows="2" placeholder="Any scratches, missing parts, etc."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-checkin')">Skip for now</button>
+      <button class="btn btn-primary" onclick="submitCheckin()">Save & confirm handoff</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: PROPOSE RETURN TIME (borrower schedules return) ===== -->
+<div class="modal-overlay" id="modal-propose-return">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title" id="propose-return-title">📅 Schedule a return</div>
+    <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;" id="propose-return-sub">Propose a time and place to return the item. The lender will confirm or suggest a different time.</p>
+
+    <div id="existing-proposals-wrap" style="display:none;margin-bottom:1rem;">
+      <div style="font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:#888;margin-bottom:6px;">Proposal history</div>
+      <div id="existing-proposals"></div>
+    </div>
+
+    <div class="form-row col2">
+      <div><label>Proposed date</label><input type="date" id="return-prop-date"></div>
+      <div><label>Proposed time</label><input type="time" id="return-prop-time" value="12:00"></div>
+    </div>
+    <div class="form-row">
+      <div><label>Location</label><input type="text" id="return-prop-location" placeholder="e.g. Marvin Center lobby, front desk..."></div>
+    </div>
+    <div><label>Note (optional)</label><textarea id="return-prop-msg" rows="2" placeholder="Anything the lender should know..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-propose-return')">Cancel</button>
+      <button class="btn btn-primary" id="return-prop-submit-btn" onclick="submitReturnProposal()">Send proposal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: REVIEW RETURN PROPOSAL (lender accepts or counters) ===== -->
+<div class="modal-overlay" id="modal-review-return">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">📬 Return proposal from borrower</div>
+    <div class="return-proposal" id="review-return-detail" style="margin-bottom:1rem;"></div>
+    <div style="margin-bottom:1rem;">
+      <label style="margin-bottom:8px;display:block;">Your response</label>
+      <div style="display:flex;gap:8px;margin-bottom:1rem;">
+        <button class="btn" id="review-accept-btn" onclick="respondReturnProposal('accept')" style="flex:1;background:#F0FAF6;border-color:#A8DFC4;color:#1D9E75;font-weight:500;">✅ Accept this time</button>
+        <button class="btn" id="review-counter-btn" onclick="showCounterFields()" style="flex:1;">🔄 Counter-propose</button>
+      </div>
+      <div id="counter-fields" style="display:none;">
+        <div class="form-row col2">
+          <div><label>Counter date</label><input type="date" id="counter-date"></div>
+          <div><label>Counter time</label><input type="time" id="counter-time" value="12:00"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Location</label><input type="text" id="counter-location" placeholder="Where to meet..."></div>
+        </div>
+        <div><label>Note</label><textarea id="counter-msg" rows="2" placeholder="Explain why you need a different time..."></textarea></div>
+        <div style="margin-top:8px;text-align:right;">
+          <button class="btn btn-primary" onclick="respondReturnProposal('counter')">Send counter-proposal</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions" id="review-return-actions">
+      <button class="btn" onclick="closeModal('modal-review-return')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: LOG RETURN + PHOTO ===== -->
+<div class="modal-overlay" id="modal-log-return">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">📦 Log item return</div>
+    <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;">Confirm the item was returned and log its condition.</p>
+    <div style="margin-bottom:1rem;">
+      <label style="margin-bottom:8px;display:block;">Condition upon return</label>
+      <div style="display:flex;gap:8px;">
+        <button class="cond-btn" onclick="selectReturnCond('Excellent',this)">✅ Excellent</button>
+        <button class="cond-btn" onclick="selectReturnCond('Good',this)">👍 Good</button>
+        <button class="cond-btn" onclick="selectReturnCond('Fair',this)">⚠️ Fair</button>
+        <button class="cond-btn" onclick="selectReturnCond('Poor',this)">❌ Poor</button>
+      </div>
+    </div>
+    <div id="checkin-compare" style="display:none;margin-bottom:1rem;padding:10px;background:#F7F5F0;border-radius:8px;font-size:12px;"></div>
+    <div style="margin-bottom:1rem;">
+      <label>Return photo</label>
+      <div class="photo-upload-zone" onclick="document.getElementById('return-photo-input').click()" id="return-photo-zone">
+        <input type="file" id="return-photo-input" accept="image/*" onchange="previewZonePhoto(this,'return-photo-zone','return-photo-preview')">
+        <div id="return-photo-preview">
+          <div style="font-size:22px;margin-bottom:4px;">📷</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);">Click to upload return photo</div>
+        </div>
+      </div>
+    </div>
+    <div><label>Notes (optional)</label><textarea id="return-notes" rows="2" placeholder="Any damage, missing items..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-log-return')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitReturn()">Confirm return</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: CLUB SWITCHER ===== -->
+<div class="modal-overlay" id="modal-club">
+  <div class="modal">
+    <div class="modal-title">Switch club view</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem;" id="club-list-picker"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-club')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== TOAST =====
+function showToast(title, msg, type = 'success', duration = 4000) {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `
+    <div class="toast-icon">${icons[type] || '✅'}</div>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      ${msg ? `<div class="toast-msg">${msg}</div>` : ''}
+    </div>
+    <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+  `;
+  container.appendChild(t);
+  setTimeout(() => removeToast(t), duration);
+}
+function removeToast(el) {
+  if (!el || el.classList.contains('removing')) return;
+  el.classList.add('removing');
+  setTimeout(() => el.remove(), 220);
+}
+
+// ===== DATA =====
+const CLUBS = [
+  { id: 'dems', name: 'College Democrats', color: '#E6F1FB', text: '#185FA5', initials: 'CD' },
+  { id: 'gsa', name: 'GW Sustainability Alliance', color: '#EAF3DE', text: '#3B6D11', initials: 'SA' },
+  { id: 'acm', name: 'GW ACM (CS Club)', color: '#EEEDFE', text: '#3C3489', initials: 'ACM' },
+  { id: 'chess', name: 'GW Chess Club', color: '#F1EFE8', text: '#444441', initials: 'CC' },
+  { id: 'model', name: 'Model UN', color: '#FAEEDA', text: '#854F0B', initials: 'MUN' },
+  { id: 'film', name: 'GW Film Society', color: '#FCEBEB', text: '#A32D2D', initials: 'FS' },
+];
+
+let currentClub = CLUBS[0];
+let invFilter = 'all';
+let browseFilter = 'all';
+let lbCatFilter = 'Furniture';
+let reqTab = 'incoming';
+let pendingBorrowItem = null;
+let pendingRespondId = null;
+let pendingRateId = null;
+let selectedStar = 5;
+
+let inventory = [
+  { id: 1, club: 'dems', name: 'Folding Tables', cat: 'Furniture', qty: 8, avail: 6, cond: 'Good', lend: true, emoji: '🪑', desc: '6ft rectangular tables' },
+  { id: 2, club: 'dems', name: 'Folding Chairs', cat: 'Furniture', qty: 30, avail: 20, cond: 'Good', lend: true, emoji: '🪑', desc: 'Standard folding chairs' },
+  { id: 3, club: 'dems', name: 'Projector', cat: 'A/V', qty: 1, avail: 1, cond: 'Excellent', lend: true, emoji: '📽️', desc: 'Epson full HD' },
+  { id: 4, club: 'dems', name: 'Paper Plates', cat: 'Tableware', qty: 200, avail: 200, cond: 'Excellent', lend: true, emoji: '🍽️', desc: 'Pack of 200' },
+  { id: 5, club: 'dems', name: 'Banner Stand', cat: 'Decor', qty: 2, avail: 2, cond: 'Good', lend: false, emoji: '🎌', desc: 'Retractable 6ft banner stands' },
+  { id: 6, club: 'gsa', name: 'Reusable Cups', cat: 'Tableware', qty: 100, avail: 100, cond: 'Excellent', lend: true, emoji: '♻️', desc: 'Eco-friendly clear cups' },
+  { id: 7, club: 'gsa', name: 'HDMI Cable', cat: 'A/V', qty: 3, avail: 3, cond: 'Good', lend: true, emoji: '🔌', desc: '10ft HDMI cables' },
+  { id: 8, club: 'gsa', name: 'Tablecloths', cat: 'Decor', qty: 10, avail: 8, cond: 'Good', lend: true, emoji: '🪄', desc: 'Green tablecloths' },
+  { id: 9, club: 'acm', name: 'Whiteboard', cat: 'Furniture', qty: 2, avail: 2, cond: 'Good', lend: true, emoji: '📋', desc: 'Portable rolling whiteboards' },
+  { id: 10, club: 'acm', name: 'Extension Cords', cat: 'A/V', qty: 5, avail: 4, cond: 'Excellent', lend: true, emoji: '🔌', desc: '12ft 6-outlet' },
+  { id: 11, club: 'chess', name: 'Chess Sets', cat: 'Other', qty: 20, avail: 20, cond: 'Good', lend: true, emoji: '♟️', desc: 'Tournament-grade' },
+  { id: 12, club: 'model', name: 'Name Placards', cat: 'Decor', qty: 50, avail: 50, cond: 'Good', lend: true, emoji: '🏷️', desc: 'Country/name placards' },
+  { id: 13, club: 'model', name: 'Gavel', cat: 'Other', qty: 3, avail: 3, cond: 'Excellent', lend: true, emoji: '🔨', desc: 'Wooden gavels' },
+  { id: 14, club: 'film', name: 'Ring Light', cat: 'A/V', qty: 2, avail: 2, cond: 'Excellent', lend: true, emoji: '💡', desc: '18" LED ring lights' },
+  { id: 15, club: 'film', name: 'Tripod', cat: 'A/V', qty: 3, avail: 3, cond: 'Good', lend: true, emoji: '📷', desc: 'Adjustable camera tripods' },
+];
+
+let requests = [
+  { id: 1, from: 'gsa', to: 'dems', itemId: 1, qty: 4, date: '2026-04-05', returnDate: '2026-04-07', event: 'Sustainability Fair', msg: 'Hi! Hosting a spring fair, would love to borrow tables.', status: 'pending', created: '2026-03-28' },
+  { id: 2, from: 'acm', to: 'dems', itemId: 3, qty: 1, date: '2026-04-10', returnDate: '2026-04-10', event: 'Hackathon', msg: 'Need a projector for our annual hackathon.', status: 'pending', created: '2026-03-29' },
+  { id: 3, from: 'dems', to: 'gsa', itemId: 6, qty: 50, date: '2026-04-12', returnDate: '2026-04-12', event: 'General meeting', msg: 'Trying to go greener at our meetings!', status: 'approved', created: '2026-03-25' },
+  { id: 4, from: 'dems', to: 'acm', itemId: 9, qty: 1, date: '2026-04-08', returnDate: '2026-04-08', event: 'Speaker event', msg: 'Whiteboard for a policy workshop.', status: 'denied', created: '2026-03-22' },
+];
+
+let ratings = {
+  'gsa': { lender: 4.8, borrower: 4.9, txns: 12 },
+  'dems': { lender: 4.5, borrower: 4.6, txns: 9 },
+  'acm': { lender: 4.7, borrower: 4.3, txns: 7 },
+  'chess': { lender: 4.9, borrower: 5.0, txns: 4 },
+  'model': { lender: 4.6, borrower: 4.7, txns: 6 },
+  'film': { lender: 4.4, borrower: 4.8, txns: 8 },
+};
+
+let points = { dems: 12, gsa: 21, acm: 15, chess: 8, model: 11, film: 14 };
+let catPoints = {
+  dems: { Furniture: 4, 'A/V': 3, Tableware: 3, Decor: 2 },
+  gsa: { Furniture: 6, 'A/V': 5, Tableware: 7, Decor: 3 },
+  acm: { Furniture: 5, 'A/V': 7, Tableware: 1, Decor: 2 },
+  chess: { Furniture: 2, 'A/V': 1, Tableware: 2, Decor: 3 },
+  model: { Furniture: 3, 'A/V': 2, Tableware: 2, Decor: 4 },
+  film: { Furniture: 3, 'A/V': 8, Tableware: 1, Decor: 2 },
+};
+
+// ===== UTILS =====
+function getClub(id) { return CLUBS.find(c => c.id === id); }
+function getItem(id) { return inventory.find(i => i.id === id); }
+function myInventory() { return inventory.filter(i => i.club === currentClub.id); }
+function othersInventory() { return inventory.filter(i => i.club !== currentClub.id && i.lend && i.avail > 0); }
+function stars(n) { return '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n)); }
+function avatar(club) {
+  return `<div class="club-avatar" style="background:${club.color};color:${club.text}">${club.initials}</div>`;
+}
+function statusBadge(s) {
+  const m = { pending: 'badge-amber', approved: 'badge-green', denied: 'badge-gray', auto_denied: 'badge-red' };
+  const l = { pending: 'Pending', approved: 'Approved', denied: 'Declined', auto_denied: 'Auto-denied' };
+  return `<span class="badge ${m[s]||'badge-gray'}">${l[s]||s}</span>`;
+}
+function daysLeft(created) {
+  const diff = 7 - Math.floor((Date.now() - new Date(created)) / 86400000);
+  return Math.max(0, diff);
+}
+function condBadge(c) {
+  const m = { Excellent: 'badge-green', Good: 'badge-blue', Fair: 'badge-amber' };
+  return `<span class="badge ${m[c]||'badge-gray'}">${c}</span>`;
+}
+
+// ===== PAGE NAV =====
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  if (id === 'inventory') renderInventory();
+  if (id === 'browse') renderBrowse();
+  if (id === 'requests') renderRequests();
+  if (id === 'leaderboard') renderLeaderboard();
+  if (id === 'analytics') renderAnalytics();
+}
+
+// ===== FILTERS =====
+function setFilter(el, val) {
+  document.querySelectorAll('#page-inventory .filter-chip').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  invFilter = val;
+  renderInventory();
+}
+function setBrowseFilter(el, val) {
+  document.querySelectorAll('#page-browse .filter-chip').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  browseFilter = val;
+  renderBrowse();
+}
+function setLbCat(el, val) {
+  document.querySelectorAll('#page-leaderboard .filter-chip').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  lbCatFilter = val;
+  renderLeaderboard();
+}
+
+// ===== INVENTORY =====
+function renderInventory() {
+  const search = document.getElementById('inv-search').value.toLowerCase();
+  const items = myInventory().filter(i => {
+    if (invFilter !== 'all' && i.cat !== invFilter) return false;
+    if (search && !i.name.toLowerCase().includes(search) && !i.desc.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  const grid = document.getElementById('inv-grid');
+  const all = myInventory();
+  const loan = all.reduce((s, i) => s + (i.qty - i.avail), 0);
+  document.getElementById('stat-total').textContent = all.reduce((s,i)=>s+i.qty,0);
+  document.getElementById('stat-avail').textContent = all.reduce((s,i)=>s+i.avail,0);
+  document.getElementById('stat-loan').textContent = loan;
+  const pts = points[currentClub.id] || 0;
+  document.getElementById('stat-pts').textContent = pts;
+  document.getElementById('stat-funding').textContent = pts * 10;
+  grid.innerHTML = items.length === 0 ? `<div class="empty-state" style="grid-column:1/-1">No items found.</div>` : items.map(item => `
+    <div class="item-card">
+      <div class="item-img" style="${item.photo ? 'padding:0;overflow:hidden;' : ''}">
+        ${item.photo ? `<img src="${item.photo}" class="photo-thumb">` : item.emoji}
+      </div>
+      <div class="item-name">${item.name}</div>
+      <div class="item-meta" style="margin-bottom:6px;">${item.cat} &middot; ${condBadge(item.cond)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><span class="item-qty">${item.avail}</span><span class="item-meta"> / ${item.qty} avail</span></div>
+        <span class="badge ${item.lend ? 'badge-teal' : 'badge-gray'}">${item.lend ? 'Lending' : 'Private'}</span>
+      </div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:6px;">${item.desc}</div>
+    </div>
+  `).join('');
+}
+
+// ===== BROWSE =====
+function renderBrowse() {
+  const search = document.getElementById('browse-search').value.toLowerCase();
+  const items = othersInventory().filter(i => {
+    if (browseFilter !== 'all' && i.cat !== browseFilter) return false;
+    if (search && !i.name.toLowerCase().includes(search) && !i.club.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  const grid = document.getElementById('browse-grid');
+  grid.innerHTML = items.length === 0 ? `<div class="empty-state" style="grid-column:1/-1">No items found.</div>` : items.map(item => {
+    const club = getClub(item.club);
+    return `
+    <div class="item-card">
+      <div class="item-img" style="${item.photo ? 'padding:0;overflow:hidden;' : ''}">
+        ${item.photo ? `<img src="${item.photo}" class="photo-thumb">` : item.emoji}
+      </div>
+      <div class="item-name">${item.name}</div>
+      <div class="item-meta" style="margin-bottom:4px;">${item.cat} &middot; ${condBadge(item.cond)}</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+        <div class="club-avatar" style="width:18px;height:18px;font-size:8px;background:${club.color};color:${club.text}">${club.initials}</div>
+        <span style="font-size:11px;color:var(--color-text-secondary)">${club.name}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span class="item-qty">${item.avail} avail</span>
+        <span class="stars" style="font-size:11px">${stars(ratings[item.club]?.lender||4.5)}</span>
+      </div>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="openBorrow(${item.id})">Request to borrow</button>
+    </div>`;
+  }).join('');
+}
+
+// ===== REQUESTS =====
+function setReqTab(tab) {
+  reqTab = tab;
+  document.getElementById('req-tab-incoming').classList.toggle('active', tab === 'incoming');
+  document.getElementById('req-tab-outgoing').classList.toggle('active', tab === 'outgoing');
+  document.getElementById('req-incoming-panel').style.display = tab === 'incoming' ? '' : 'none';
+  document.getElementById('req-outgoing-panel').style.display = tab === 'outgoing' ? '' : 'none';
+}
+
+function renderRequests() {
+  const incoming = requests.filter(r => r.to === currentClub.id);
+  const outgoing = requests.filter(r => r.from === currentClub.id);
+
+  const inEl = document.getElementById('req-list-incoming');
+  const outEl = document.getElementById('req-list-outgoing');
+
+  if (!incoming.length) { inEl.innerHTML = '<div class="empty-state">No incoming requests.</div>'; }
+  else {
+    inEl.innerHTML = `<table><thead><tr><th>From</th><th>Item</th><th>Qty</th><th>Date needed</th><th>Status</th><th>Return</th><th></th></tr></thead><tbody>` +
+    incoming.map(r => {
+      const from = getClub(r.from);
+      const item = getItem(r.itemId);
+      const dl = daysLeft(r.created);
+      const returnProposal = r.returnProposals && r.returnProposals.length ? r.returnProposals[r.returnProposals.length-1] : null;
+      const returnCell = r.status === 'approved' && !r.returned
+        ? (returnProposal && returnProposal.from !== currentClub.id && returnProposal.status === 'pending'
+            ? `<button class="btn btn-sm" style="background:#FFF8F0;border-color:#F0D5A8;color:#854F0B;" onclick="openReviewReturn(${r.id})">📬 Review proposal</button>`
+            : (returnProposal && returnProposal.status === 'accepted'
+                ? `<button class="btn btn-sm btn-primary" onclick="openLogReturn(${r.id})">Log return</button>`
+                : `<span style="font-size:11px;color:var(--color-text-tertiary)">Awaiting borrower</span>`))
+        : (r.returned ? `<span class="badge badge-green">Returned</span>` : '—');
+      const lenderRateCell = r.returned && !r.lenderRated
+        ? `<button class="btn btn-sm btn-primary" onclick="openRateLender(${r.id})">⭐ Rate borrower</button>`
+        : (r.lenderRated ? `<span style="font-size:11px;color:var(--color-text-tertiary);">Rated ✓</span>` : '');
+      return `<tr>
+        <td style="display:flex;gap:6px;align-items:center">${avatar(from)}<span style="font-size:13px">${from.name}</span></td>
+        <td>${item?.emoji} ${item?.name}</td>
+        <td>${r.qty}</td>
+        <td>${r.date}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td>${returnCell}</td>
+        <td>${r.status==='pending' ? `<button class="btn btn-sm btn-primary" onclick="openRespond(${r.id})">Respond</button>` : lenderRateCell}</td>
+      </tr>`;
+    }).join('') + '</tbody></table>';
+  }
+
+  if (!outgoing.length) { outEl.innerHTML = '<div class="empty-state">No outgoing requests.</div>'; }
+  else {
+    outEl.innerHTML = `<table><thead><tr><th>To</th><th>Item</th><th>Qty</th><th>Date</th><th>Status</th><th>Pickup</th><th>Return</th><th></th></tr></thead><tbody>` +
+    outgoing.map(r => {
+      const to = getClub(r.to);
+      const item = getItem(r.itemId);
+      const p = r.pickup;
+      const pickupCell = p && r.status === 'approved'
+        ? `<div style="font-size:11px;line-height:1.5;">
+            ${p.date ? `📅 ${new Date(p.date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}${p.time ? ' · ' + p.time : ''}` : ''}
+            ${p.location ? `<br>📍 ${p.location}` : ''}
+           </div>`
+        : '<span style="color:var(--color-text-tertiary);font-size:11px;">—</span>';
+
+      const returnProposal = r.returnProposals && r.returnProposals.length ? r.returnProposals[r.returnProposals.length-1] : null;
+      let returnCell = '—';
+      if (r.returned) {
+        returnCell = `<span class="badge badge-green">Returned ✓</span>`;
+      } else if (r.status === 'approved') {
+        if (!returnProposal) {
+          returnCell = `<button class="btn btn-sm" onclick="openProposeReturn(${r.id})">📅 Schedule return</button>`;
+        } else if (returnProposal.status === 'pending' && returnProposal.from === currentClub.id) {
+          returnCell = `<span style="font-size:11px;color:#854F0B;">⏳ Awaiting lender</span>`;
+        } else if (returnProposal.status === 'pending' && returnProposal.from !== currentClub.id) {
+          returnCell = `<button class="btn btn-sm" style="background:#FFF8F0;border-color:#F0D5A8;color:#854F0B;" onclick="openProposeReturn(${r.id})">🔄 Counter received</button>`;
+        } else if (returnProposal.status === 'accepted') {
+          returnCell = `<div style="font-size:11px;line-height:1.5;color:#1D9E75;">✅ ${new Date(returnProposal.date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${returnProposal.time}<br>📍 ${returnProposal.location||'TBD'}</div>`;
+        }
+      }
+
+      let actionCell = '';
+      if (r.status === 'approved') {
+        if (r.returned && r.borrowerConfirmed && !r.borrowerRated) {
+          actionCell = `<button class="btn btn-sm btn-primary" onclick="openRate(${r.id},'borrow')">⭐ Rate lender</button>`;
+        } else if (r.returned && !r.borrowerConfirmed) {
+          actionCell = `<button class="btn btn-sm" style="background:#F0FAF6;border-color:#A8DFC4;color:#1D9E75;font-weight:500;" onclick="confirmReceived(${r.id})">✅ Confirm received</button>`;
+        } else if (r.returned && r.borrowerRated) {
+          actionCell = `<span style="font-size:11px;color:var(--color-text-tertiary);">Rated ✓</span>`;
+        }
+      }
+      return `<tr>
+        <td style="display:flex;gap:6px;align-items:center">${avatar(to)}<span style="font-size:13px">${to.name}</span></td>
+        <td>${item?.emoji} ${item?.name}</td>
+        <td>${r.qty}</td>
+        <td>${r.date}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td>${pickupCell}</td>
+        <td>${returnCell}</td>
+        <td>${actionCell}</td>
+      </tr>`;
+    }).join('') + '</tbody></table>';
+  }
+
+  const pendingIn = incoming.filter(r => r.status === 'pending').length;
+  document.getElementById('notif-req').style.display = pendingIn > 0 ? 'inline-block' : 'none';
+}
+
+// ===== LEADERBOARD =====
+function renderLeaderboard() {
+  const sorted = Object.entries(points).sort((a,b) => b[1]-a[1]);
+  const maxPts = sorted[0][1];
+  const rankClass = (i) => i===0?'gold':i===1?'silver':i===2?'bronze':'';
+
+  document.getElementById('lb-overall').innerHTML = sorted.map(([id, pts], i) => {
+    const club = getClub(id);
+    const pct = Math.round((pts / maxPts) * 100);
+    return `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <div class="rank-num ${rankClass(i)}">${i+1}</div>
+      ${avatar(club)}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${club.name}</div>
+        <div class="progress-bar" style="margin-top:4px"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:14px;font-weight:500">${pts} pts</div>
+        <div style="font-size:11px;color:var(--color-text-tertiary)">+$${pts*10}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const catSorted = Object.entries(catPoints).map(([id, cats]) => ({ id, pts: cats[lbCatFilter]||0 })).sort((a,b) => b.pts-a.pts);
+  const maxCat = catSorted[0].pts;
+  document.getElementById('lb-cat').innerHTML = catSorted.map(({id, pts}, i) => {
+    const club = getClub(id);
+    const pct = maxCat > 0 ? Math.round((pts/maxCat)*100) : 0;
+    return `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <div class="rank-num ${rankClass(i)}">${i+1}</div>
+      ${avatar(club)}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${club.name}</div>
+        <div class="progress-bar" style="margin-top:4px"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div style="font-size:14px;font-weight:500;flex-shrink:0">${pts}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('lb-ratings').innerHTML = CLUBS.map(club => {
+    const r = ratings[club.id] || { lender: 4.5, borrower: 4.5, txns: 0 };
+    return `<tr>
+      <td style="display:flex;gap:8px;align-items:center">${avatar(club)} ${club.name}</td>
+      <td><span class="stars">${stars(r.lender)}</span> <span style="font-size:11px;color:var(--color-text-secondary)">${r.lender.toFixed(1)}</span></td>
+      <td><span class="stars">${stars(r.borrower)}</span> <span style="font-size:11px;color:var(--color-text-secondary)">${r.borrower.toFixed(1)}</span></td>
+      <td>${r.txns}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== ANALYTICS =====
+function renderAnalytics() {
+  const itemData = [
+    { name: 'Tables', val: 18 },
+    { name: 'Chairs', val: 14 },
+    { name: 'Projector', val: 11 },
+    { name: 'Cups', val: 9 },
+    { name: 'Extension', val: 7 },
+    { name: 'Tripod', val: 5 },
+  ];
+  const catData = [
+    { name: 'Furniture', val: 32 },
+    { name: 'A/V', val: 23 },
+    { name: 'Tableware', val: 16 },
+    { name: 'Decor', val: 9 },
+    { name: 'Other', val: 6 },
+  ];
+  renderBarChart('chart-items', 'chart-items-labels', itemData);
+  renderBarChart('chart-cats', 'chart-cats-labels', catData);
+
+  const activities = [
+    { text: 'GW ACM requested 1 Projector from College Democrats', time: '2 days ago' },
+    { text: 'GSA approved College Democrats\' cup request', time: '4 days ago' },
+    { text: 'GW Film Society lent 2 ring lights to Model UN', time: '5 days ago' },
+    { text: 'GW Chess Club received 5★ rating from ACM', time: '1 week ago' },
+    { text: 'Model UN added 50 name placards to inventory', time: '1 week ago' },
+  ];
+  document.getElementById('activity-log').innerHTML = activities.map(a =>
+    `<div class="timeline-item"><div class="timeline-dot"></div><div><div class="timeline-text">${a.text}</div><div class="timeline-time">${a.time}</div></div></div>`
+  ).join('');
+}
+
+function renderBarChart(barId, labelId, data) {
+  const max = Math.max(...data.map(d => d.val));
+  document.getElementById(barId).innerHTML = data.map(d =>
+    `<div class="chart-bar" style="height:${Math.round((d.val/max)*92)}px" title="${d.name}: ${d.val}"></div>`
+  ).join('');
+  document.getElementById(labelId).innerHTML = data.map(d =>
+    `<div class="chart-label">${d.name}</div>`
+  ).join('');
+}
+
+// ===== MODALS =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+function previewItemPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wrap = document.getElementById('new-item-photo-preview-wrap');
+    wrap.innerHTML = `<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;">
+      <div style="font-size:11px;color:#1D9E75;margin-top:4px;">✓ Photo ready</div>`;
+    wrap._photoData = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewZonePhoto(input, zoneId, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById(previewId);
+    prev.innerHTML = `<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;">
+      <div style="font-size:11px;color:#1D9E75;margin-top:4px;">✓ Photo ready</div>`;
+    prev._photoData = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function openAddItem() {
+  document.getElementById('new-item-photo-preview-wrap').innerHTML = `
+    <div style="font-size:22px;margin-bottom:4px;">📷</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);">Click to upload a photo</div>`;
+  openModal('modal-add-item');
+}
+
+function addItem() {
+  const name = document.getElementById('new-item-name').value.trim();
+  if (!name) return;
+  const photoData = document.getElementById('new-item-photo-preview-wrap')._photoData || null;
+  const newItem = {
+    id: Date.now(),
+    club: currentClub.id,
+    name,
+    cat: document.getElementById('new-item-cat').value,
+    qty: parseInt(document.getElementById('new-item-qty').value) || 1,
+    avail: parseInt(document.getElementById('new-item-qty').value) || 1,
+    cond: document.getElementById('new-item-cond').value,
+    lend: document.getElementById('new-item-lend').value === 'yes',
+    emoji: document.getElementById('new-item-emoji').value || '📦',
+    desc: document.getElementById('new-item-desc').value,
+    photo: photoData,
+  };
+  inventory.push(newItem);
+  closeModal('modal-add-item');
+  renderInventory();
+  showToast('Item added', `${newItem.emoji} ${newItem.name} is now in your inventory.`);
+  document.getElementById('new-item-name').value = '';
+  document.getElementById('new-item-desc').value = '';
+  document.getElementById('new-item-photo-input').value = '';
+}
+
+function openBorrow(itemId) {
+  pendingBorrowItem = itemId;
+  const item = getItem(itemId);
+  const club = getClub(item.club);
+  document.getElementById('borrow-modal-title').textContent = `Request to borrow: ${item.emoji} ${item.name} from ${club.name}`;
+  document.getElementById('borrow-qty').max = item.avail;
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('borrow-date').value = today;
+  document.getElementById('borrow-return').value = today;
+  openModal('modal-borrow');
+}
+
+function submitBorrow() {
+  const item = getItem(pendingBorrowItem);
+  const qty = parseInt(document.getElementById('borrow-qty').value) || 1;
+  if (qty > item.avail) { showToast('Not enough available', `Only ${item.avail} unit${item.avail !== 1 ? 's' : ''} available to borrow.`, 'error'); return; }
+  requests.push({
+    id: Date.now(),
+    from: currentClub.id,
+    to: item.club,
+    itemId: item.id,
+    qty,
+    date: document.getElementById('borrow-date').value,
+    returnDate: document.getElementById('borrow-return').value,
+    event: document.getElementById('borrow-event').value,
+    msg: document.getElementById('borrow-msg').value,
+    status: 'pending',
+    created: new Date().toISOString().split('T')[0],
+  });
+  closeModal('modal-borrow');
+  showToast('Request sent!', 'The club has 1 week to respond. You\'ll see it in Outgoing requests.');
+  document.getElementById('borrow-msg').value = '';
+}
+
+function openRespond(reqId) {
+  pendingRespondId = reqId;
+  const r = requests.find(x => x.id === reqId);
+  const from = getClub(r.from);
+  const item = getItem(r.itemId);
+  document.getElementById('respond-detail').innerHTML = `
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">${avatar(from)}<strong>${from.name}</strong></div>
+    <div style="margin-bottom:4px">Requesting: <strong>${r.qty}x ${item?.name}</strong> (${r.date} → ${r.returnDate})</div>
+    <div style="margin-bottom:4px">Event: ${r.event}</div>
+    <div style="color:var(--color-text-secondary);font-style:italic;">"${r.msg}"</div>
+  `;
+  // Pre-fill pickup date to the requested date
+  document.getElementById('respond-pickup-date').value = r.date || '';
+  document.getElementById('respond-pickup-time').value = '12:00';
+  document.getElementById('respond-pickup-location').value = '';
+  document.getElementById('respond-msg').value = '';
+  openModal('modal-respond');
+}
+
+function respondRequest(action) {
+  const r = requests.find(x => x.id === pendingRespondId);
+  if (!r) return;
+  r.status = action;
+  if (action === 'approved') {
+    const item = getItem(r.itemId);
+    if (item) item.avail = Math.max(0, item.avail - r.qty);
+    const cat = item?.cat;
+    if (cat) {
+      const catsForClub = catPoints[currentClub.id] || {};
+      if (!catsForClub[cat]) catsForClub[cat] = 0;
+      catsForClub[cat] += 1;
+      catPoints[currentClub.id] = catsForClub;
+    }
+    points[currentClub.id] = (points[currentClub.id] || 0) + 1;
+    // Save pickup details on the request
+    const pickupDate = document.getElementById('respond-pickup-date').value;
+    const pickupTime = document.getElementById('respond-pickup-time').value;
+    const pickupLocation = document.getElementById('respond-pickup-location').value.trim();
+    r.pickup = { date: pickupDate, time: pickupTime, location: pickupLocation };
+  }
+  if (action === 'approved') {
+    const p = r.pickup;
+    const fmt = (d, t) => {
+      const parts = [];
+      if (d) parts.push(new Date(d + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      if (t) parts.push(t);
+      return parts.join(' at ');
+    };
+    const pickupStr = p && (p.date || p.location)
+      ? `Pickup: ${fmt(p.date, p.time)}${p.location ? ' · ' + p.location : ''}`
+      : 'Pickup details not set.';
+    showToast('Request approved! 🎉', pickupStr);
+    closeModal('modal-respond');
+    renderRequests();
+    renderInventory();
+    // Open condition check-in
+    checkinReqId = pendingRespondId;
+    checkinCond = null;
+    document.getElementById('checkin-notes').value = '';
+    document.getElementById('checkin-photo-preview').innerHTML = `<div style="font-size:22px;margin-bottom:4px;">📷</div><div style="font-size:12px;color:var(--color-text-secondary);">Click to upload</div>`;
+    document.getElementById('checkin-photo-preview')._photoData = null;
+    document.querySelectorAll('#modal-checkin .cond-btn').forEach(b => b.className = 'cond-btn');
+    openModal('modal-checkin');
+  } else {
+    closeModal('modal-respond');
+    renderRequests();
+    renderInventory();
+    showToast('Request declined', 'The borrowing club has been notified.', 'info');
+  }
+}
+
+let pendingRateRole = 'borrow';
+
+function openRate(reqId, role) {
+  pendingRateId = reqId;
+  pendingRateRole = role;
+  const r = requests.find(x => x.id === reqId);
+  const otherClub = getClub(role === 'borrow' ? r.to : r.from);
+  document.getElementById('rate-title').textContent = role === 'borrow' ? 'Rate this lender' : 'Rate this borrower';
+  document.getElementById('rate-sub').textContent = `How was ${otherClub.name} as a ${role === 'borrow' ? 'lender' : 'borrower'}?`;
+  selectedStar = 5;
+  document.querySelectorAll('#star-picker .btn').forEach(b => { b.style.background = ''; b.style.borderColor = ''; });
+  openModal('modal-rate');
+}
+
+function openRateLender(reqId) { openRate(reqId, 'lend'); }
+
+function confirmReceived(reqId) {
+  const r = requests.find(x => x.id === reqId);
+  if (!r) return;
+  r.borrowerConfirmed = true;
+  renderRequests();
+  showToast('Return confirmed! ✅', 'You can now rate your experience with the lender.');
+}
+
+function setStar(n) {
+  selectedStar = n;
+  document.querySelectorAll('#star-picker .btn').forEach((b,i) => {
+    b.style.background = i < n ? '#FAEEDA' : '';
+    b.style.borderColor = i < n ? '#EF9F27' : '';
+  });
+}
+
+function submitRating() {
+  const r = requests.find(x => x.id === pendingRateId);
+  if (r) {
+    const key = currentClub.id === r.from ? r.to : r.from;
+    const field = currentClub.id === r.from ? 'lender' : 'borrower';
+    if (!ratings[key]) ratings[key] = { lender: 5, borrower: 5, txns: 0 };
+    ratings[key][field] = Math.round(((ratings[key][field] * ratings[key].txns + selectedStar) / (ratings[key].txns + 1)) * 10) / 10;
+    ratings[key].txns++;
+    // Mark as rated so button disappears
+    if (pendingRateRole === 'borrow') r.borrowerRated = true;
+    else r.lenderRated = true;
+  }
+  closeModal('modal-rate');
+  renderRequests();
+  showToast('Rating submitted', 'Thanks for helping the community! ⭐');
+}
+
+function openClubSwitcher() {
+  const list = document.getElementById('club-list-picker');
+  list.innerHTML = CLUBS.map(c => `
+    <div style="display:flex;gap:10px;align-items:center;cursor:pointer;padding:8px;border-radius:8px;border:0.5px solid var(--color-border-tertiary);${c.id===currentClub.id?'border-color:#1D9E75;':''}" onclick="switchClub('${c.id}')">
+      ${avatar(c)}
+      <div>
+        <div style="font-size:13px;font-weight:500">${c.name}</div>
+        <div style="font-size:11px;color:var(--color-text-secondary)">${points[c.id]||0} pts &middot; ${(inventory.filter(i=>i.club===c.id).length)} items</div>
+      </div>
+      ${c.id===currentClub.id?'<span class="badge badge-green" style="margin-left:auto">Active</span>':''}
+    </div>
+  `).join('');
+  openModal('modal-club');
+}
+
+function switchClub(id) {
+  currentClub = getClub(id);
+  document.getElementById('current-club-badge').textContent = currentClub.name;
+  closeModal('modal-club');
+  renderInventory();
+  renderRequests();
+}
+
+// ===== EXPORT =====
+let exportOpt = 'inventory';
+
+function openExport() {
+  exportOpt = 'inventory';
+  document.querySelectorAll('input[name="export-opt"]').forEach(r => r.checked = r.value === 'inventory');
+  updateExportHighlight();
+  openModal('modal-export');
+}
+
+function selectExportOpt(val) {
+  exportOpt = val;
+  updateExportHighlight();
+}
+
+function updateExportHighlight() {
+  ['inventory','requests','both'].forEach(v => {
+    const el = document.getElementById('export-opt-' + v);
+    if (el) el.style.borderColor = exportOpt === v ? '#1D9E75' : 'var(--color-border-tertiary)';
+    if (el) el.style.background = exportOpt === v ? '#F0FAF6' : '';
+  });
+}
+
+function csvEscape(val) {
+  const s = String(val ?? '');
+  return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g,'""')}"` : s;
+}
+
+function buildInventoryCSV() {
+  const cols = ['Item Name','Category','Total Qty','Available','On Loan','Condition','Lendable','Description','Club'];
+  const rows = myInventory().map(i => [
+    i.name, i.cat, i.qty, i.avail, i.qty - i.avail, i.cond, i.lend ? 'Yes' : 'No', i.desc, currentClub.name
+  ]);
+  return [cols, ...rows].map(r => r.map(csvEscape).join(',')).join('\n');
+}
+
+function buildRequestsCSV() {
+  const cols = ['Request ID','From','To','Item','Qty','Date Needed','Return Date','Event','Message','Status','Pickup Date','Pickup Time','Pickup Location'];
+  const rows = requests
+    .filter(r => r.from === currentClub.id || r.to === currentClub.id)
+    .map(r => {
+      const from = getClub(r.from);
+      const to = getClub(r.to);
+      const item = getItem(r.itemId);
+      const p = r.pickup || {};
+      return [r.id, from?.name, to?.name, item?.name, r.qty, r.date, r.returnDate, r.event, r.msg, r.status, p.date||'', p.time||'', p.location||''];
+    });
+  return [cols, ...rows].map(r => r.map(csvEscape).join(',')).join('\n');
+}
+
+function downloadCSV(csv, filename) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function doExport() {
+  const clubSlug = currentClub.name.replace(/\s+/g, '_');
+  if (exportOpt === 'inventory' || exportOpt === 'both') {
+    downloadCSV(buildInventoryCSV(), `${clubSlug}_inventory.csv`);
+  }
+  if (exportOpt === 'requests' || exportOpt === 'both') {
+    setTimeout(() => downloadCSV(buildRequestsCSV(), `${clubSlug}_requests.csv`), exportOpt === 'both' ? 300 : 0);
+  }
+  closeModal('modal-export');
+  showToast('Export ready!', `Downloaded as CSV — open in Google Sheets or Excel.`);
+}
+
+// ===== CONDITION CHECK-IN =====
+let checkinReqId = null;
+let checkinCond = null;
+let returnCond = null;
+let proposeReturnReqId = null;
+let reviewReturnReqId = null;
+let logReturnReqId = null;
+
+function selectCheckinCond(val, btn) {
+  checkinCond = val;
+  document.querySelectorAll('#modal-checkin .cond-btn').forEach(b => b.className = 'cond-btn');
+  const cls = { Excellent:'selected-exc', Good:'selected-good', Fair:'selected-fair', Poor:'selected-poor' };
+  btn.className = 'cond-btn ' + (cls[val] || '');
+}
+
+function selectReturnCond(val, btn) {
+  returnCond = val;
+  document.querySelectorAll('#modal-log-return .cond-btn').forEach(b => b.className = 'cond-btn');
+  const cls = { Excellent:'selected-exc', Good:'selected-good', Fair:'selected-fair', Poor:'selected-poor' };
+  btn.className = 'cond-btn ' + (cls[val] || '');
+  // Show comparison if checkin cond recorded
+  const r = requests.find(x => x.id === logReturnReqId);
+  if (r && r.checkin) {
+    const compareEl = document.getElementById('checkin-compare');
+    compareEl.style.display = 'block';
+    compareEl.innerHTML = `<strong>Condition at handoff:</strong> ${r.checkin.cond} &nbsp;→&nbsp; <strong>Condition now:</strong> ${val}`;
+    compareEl.style.color = (val === 'Poor' || val === 'Fair') && r.checkin.cond === 'Excellent' ? '#A32D2D' : '#1D9E75';
+  }
+}
+
+function submitCheckin() {
+  const r = requests.find(x => x.id === checkinReqId);
+  if (r) {
+    r.checkin = {
+      cond: checkinCond || 'Not recorded',
+      notes: document.getElementById('checkin-notes').value,
+      photo: document.getElementById('checkin-photo-preview')._photoData || null,
+      date: new Date().toISOString().split('T')[0],
+    };
+  }
+  closeModal('modal-checkin');
+  showToast('Handoff logged', `Condition recorded as ${r.checkin.cond}.`);
+}
+
+// ===== RETURN SCHEDULING =====
+function openProposeReturn(reqId) {
+  proposeReturnReqId = reqId;
+  const r = requests.find(x => x.id === reqId);
+  const proposals = r.returnProposals || [];
+  const lastCounter = proposals.length ? proposals[proposals.length-1] : null;
+
+  document.getElementById('propose-return-title').textContent = proposals.length ? '🔄 Counter-propose return time' : '📅 Schedule a return';
+  document.getElementById('propose-return-sub').textContent = proposals.length
+    ? 'The lender suggested a different time. You can accept it or counter-propose.'
+    : 'Propose a time and place to return the item. The lender will confirm or suggest a different time.';
+  document.getElementById('return-prop-submit-btn').textContent = proposals.length ? 'Send counter-proposal' : 'Send proposal';
+
+  // Pre-fill with last counter if exists
+  if (lastCounter && lastCounter.status === 'pending' && lastCounter.from !== currentClub.id) {
+    document.getElementById('return-prop-date').value = lastCounter.date || '';
+    document.getElementById('return-prop-time').value = lastCounter.time || '12:00';
+    document.getElementById('return-prop-location').value = lastCounter.location || '';
+
+    const wrap = document.getElementById('existing-proposals-wrap');
+    wrap.style.display = 'block';
+    document.getElementById('existing-proposals').innerHTML = `
+      <div class="return-proposal counter">
+        <strong>Lender's counter:</strong> ${lastCounter.date ? new Date(lastCounter.date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''} at ${lastCounter.time} · ${lastCounter.location || 'TBD'}
+        <br><span style="color:var(--color-text-secondary);">${lastCounter.msg || ''}</span>
+        <div style="margin-top:6px;display:flex;gap:8px;">
+          <button class="btn btn-sm" style="background:#F0FAF6;border-color:#A8DFC4;color:#1D9E75;" onclick="acceptCounterFromBorrower(${reqId})">✅ Accept this</button>
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('existing-proposals-wrap').style.display = 'none';
+    document.getElementById('return-prop-date').value = r.returnDate || '';
+    document.getElementById('return-prop-time').value = '12:00';
+    document.getElementById('return-prop-location').value = '';
+  }
+  document.getElementById('return-prop-msg').value = '';
+  openModal('modal-propose-return');
+}
+
+function acceptCounterFromBorrower(reqId) {
+  const r = requests.find(x => x.id === reqId);
+  const last = r.returnProposals[r.returnProposals.length-1];
+  last.status = 'accepted';
+  closeModal('modal-propose-return');
+  renderRequests();
+  showToast('Return scheduled! ✅', `${new Date(last.date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})} at ${last.time} · ${last.location||'TBD'}`);
+}
+
+function submitReturnProposal() {
+  const r = requests.find(x => x.id === proposeReturnReqId);
+  if (!r.returnProposals) r.returnProposals = [];
+  r.returnProposals.push({
+    from: currentClub.id,
+    date: document.getElementById('return-prop-date').value,
+    time: document.getElementById('return-prop-time').value,
+    location: document.getElementById('return-prop-location').value,
+    msg: document.getElementById('return-prop-msg').value,
+    status: 'pending',
+    sent: new Date().toISOString(),
+  });
+  closeModal('modal-propose-return');
+  renderRequests();
+  showToast('Return proposal sent!', 'The lender will confirm or suggest a different time.');
+}
+
+function openReviewReturn(reqId) {
+  reviewReturnReqId = reqId;
+  const r = requests.find(x => x.id === reqId);
+  const prop = r.returnProposals[r.returnProposals.length-1];
+  const from = getClub(prop.from);
+  document.getElementById('review-return-detail').innerHTML = `
+    <div style="font-weight:500;margin-bottom:4px;">From ${from.name}:</div>
+    <div>📅 ${prop.date ? new Date(prop.date+'T00:00').toLocaleDateString('en-US',{month:'long',day:'numeric'}) : 'No date'} at ${prop.time}</div>
+    <div>📍 ${prop.location || 'No location specified'}</div>
+    ${prop.msg ? `<div style="color:var(--color-text-secondary);margin-top:6px;font-style:italic;">"${prop.msg}"</div>` : ''}
+  `;
+  document.getElementById('counter-fields').style.display = 'none';
+  document.getElementById('counter-date').value = '';
+  document.getElementById('counter-location').value = '';
+  document.getElementById('counter-msg').value = '';
+  openModal('modal-review-return');
+}
+
+function showCounterFields() {
+  document.getElementById('counter-fields').style.display = 'block';
+}
+
+function respondReturnProposal(action) {
+  const r = requests.find(x => x.id === reviewReturnReqId);
+  const prop = r.returnProposals[r.returnProposals.length-1];
+  if (action === 'accept') {
+    prop.status = 'accepted';
+    closeModal('modal-review-return');
+    renderRequests();
+    showToast('Return scheduled! ✅', `${new Date(prop.date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})} at ${prop.time} · ${prop.location||'TBD'}`);
+  } else {
+    prop.status = 'countered';
+    r.returnProposals.push({
+      from: currentClub.id,
+      date: document.getElementById('counter-date').value,
+      time: document.getElementById('counter-time').value,
+      location: document.getElementById('counter-location').value,
+      msg: document.getElementById('counter-msg').value,
+      status: 'pending',
+      sent: new Date().toISOString(),
+    });
+    closeModal('modal-review-return');
+    renderRequests();
+    showToast('Counter-proposal sent', 'The borrower will see your suggested time.');
+  }
+}
+
+function openLogReturn(reqId) {
+  logReturnReqId = reqId;
+  returnCond = null;
+  document.getElementById('return-notes').value = '';
+  document.getElementById('return-photo-preview').innerHTML = `<div style="font-size:22px;margin-bottom:4px;">📷</div><div style="font-size:12px;color:var(--color-text-secondary);">Click to upload return photo</div>`;
+  document.getElementById('return-photo-preview')._photoData = null;
+  document.getElementById('checkin-compare').style.display = 'none';
+  document.querySelectorAll('#modal-log-return .cond-btn').forEach(b => b.className = 'cond-btn');
+  openModal('modal-log-return');
+}
+
+function submitReturn() {
+  const r = requests.find(x => x.id === logReturnReqId);
+  if (!r) return;
+  r.returned = true;
+  r.returnLog = {
+    cond: returnCond || 'Not recorded',
+    notes: document.getElementById('return-notes').value,
+    photo: document.getElementById('return-photo-preview')._photoData || null,
+    date: new Date().toISOString().split('T')[0],
+  };
+  const item = getItem(r.itemId);
+  if (item) item.avail = Math.min(item.qty, item.avail + r.qty);
+  closeModal('modal-log-return');
+  renderRequests();
+  renderInventory();
+  showToast('Return confirmed! 📦', `${item?.name} is back in inventory.`);
+}
+
+// ===== INIT =====
+renderInventory();
+renderRequests();
+renderLeaderboard();
+renderAnalytics();
+</script>
+</body>
+</html>
